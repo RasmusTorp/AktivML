@@ -129,3 +129,7 @@ dmypy.json
 .pyre/
 AktivML.code-workspace
 data/
+
+image_data_gray.npy
+image_data_rgb.npy
+labels.npy
