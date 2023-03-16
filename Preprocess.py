@@ -8,7 +8,7 @@ import cv2
 folder_path = os.getcwd() + "\data\shipsnet\shipsnet"
 
 # Linux
-folder_path = "ActiveProjectBO/data/shipsnet/shipsnet"
+# folder_path = "ActiveProjectBO/data/shipsnet/shipsnet"
 
 
 img_list = []
@@ -53,7 +53,6 @@ for i, filename in enumerate(os.listdir(folder_path)):
         img_gray = simple_process(img)
         img_list_rgb.append(img)
         img_list_gray.append(img_gray)
-        print(i)
 
 # io.imshow_collection([img_list[15], img_list_gray[15], img_list_rgb[15]])
 #io.imshow_collection([img_list[15], img_list_gray[15]], cmap="gray")
