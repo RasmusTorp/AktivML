@@ -127,3 +127,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+AktivML.code-workspace
+data/
