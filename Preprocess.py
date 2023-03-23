@@ -5,10 +5,10 @@ import numpy as np
 import cv2
 
 # Windows
-folder_path = os.getcwd() + "\data\shipsnet\shipsnet"
+# folder_path = os.getcwd() + "\data\shipsnet\shipsnet"
 
 # Linux
-# folder_path = "ActiveProjectBO/data/shipsnet/shipsnet"
+folder_path = "ActiveProjectBO/data/shipsnet/shipsnet"
 
 
 img_list = []
@@ -40,7 +40,9 @@ def process(img):
     return img_rgb, img_gray
 
 def simple_process(img):
-    return color.rgb2gray(img)
+    img_gray = color.rgb2gray(img)
+    img_gray = np.reshape(img_gray, (80,80,1))
+    return img_gray
 
 
 # Main loop
