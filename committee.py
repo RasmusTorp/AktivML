@@ -9,6 +9,7 @@ from functools import partial
 #from keras.wrappers.scikit_learn import KerasClassifier
 from scikeras.wrappers import KerasClassifier
 from keras.callbacks import EarlyStopping
+from imblearn.under_sampling import RandomUnderSampler
 
 from modAL.models import ActiveLearner, Committee
 from modAL.disagreement import vote_entropy_sampling
@@ -35,8 +36,12 @@ ESTIMATOR = KerasClassifier(build_fn=get_model,
 ### Data 
 X_raw = np.load("image_data_gray.npy")
 y_raw = np.load("labels.npy")
+
+rus = RandomUnderSampler(random_state=0)
+X_resampled, y_resampled = rus.fit_resample(X_raw.reshape(4000,-1), y_raw.reshape(4000,-1))
+X_resampled, y_resampled = np.reshape(X_resampled, (2000,80,80,1)), np.reshape(y_resampled, (2000,1)) 
 #X_train, X_test, y_train, y_test = train_test_split(X_raw, y_raw, test_size=0.20, random_state=42)
-X_pool, X_test, y_pool, y_test = train_test_split(X_raw, y_raw, test_size=0.20, random_state=42)
+X_pool, X_test, y_pool, y_test = train_test_split(X_resampled, y_resampled, test_size=0.50, random_state=42)
 #X_train, X_pool, y_train, y_pool = train_test_split(X_train, y_train, train_size=INITIAL_SIZE, random_state=42)
 
 
