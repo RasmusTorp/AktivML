@@ -10,6 +10,7 @@ from modAL.batch import uncertainty_batch_sampling
 from modAL.models import ActiveLearner
 #from keras.wrappers.scikit_learn import KerasClassifier
 from scikeras.wrappers import KerasClassifier
+from imblearn.under_sampling import RandomUnderSampler
 
 from model import Classifier, create_model, get_model
 
@@ -24,8 +25,13 @@ EPOCHS = 10
 ### Data 
 X_raw = np.load("image_data_gray.npy")
 y_raw = np.load("labels.npy")
-X_train, X_test, y_train, y_test = train_test_split(X_raw, y_raw, test_size=0.20, random_state=42)
+rus = RandomUnderSampler(random_state=0)
+X_resampled, y_resampled = rus.fit_resample(X_raw.reshape(4000,-1), y_raw.reshape(4000,-1))
+X_resampled, y_resampled = np.reshape(X_resampled, (2000,80,80,1)), np.reshape(y_resampled, (2000,1)) 
+
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.50, random_state=42)
 X_train, X_pool, y_train, y_pool = train_test_split(X_train, y_train, train_size=INITIAL_SIZE, random_state=42)
+
 
 # # Isolate our examples for our labeled dataset.
 # n_labeled_examples = X_train.shape[0]
