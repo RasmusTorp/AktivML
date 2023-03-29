@@ -11,18 +11,18 @@ from modAL.models import ActiveLearner
 from sklearn.model_selection import train_test_split
 from model import create_model, get_model
 import pandas as pd
+from sklearn.metrics import f1_score, accuracy_score
 
 INITIAL_SIZE = 10
 
-
-n_repeats = 2
-n_queries = 10
+n_repeats = 3
+n_queries = 20
 SEED = 42
-TEST_SIZE = 1/5
+TEST_SIZE = 1/3
 BATCH_SIZE = 2
 EPOCHS = 10
 verbose = 1
-
+extra_per_iteration = 1
 
 ResultsRecord = namedtuple('ResultsRecord', ['estimator', 'query_id', 'score'])
 
@@ -67,8 +67,6 @@ def get_scikit_model():
                            metrics=['accuracy'])
 
 
-
-
 # def get_learner():
 #     learner = ActiveLearner(estimator=KerasClassifier(build_fn=get_model, 
 #                                                   loss="sparse_categorical_crossentropy", 
@@ -89,8 +87,6 @@ def get_scikit_model():
 
 permutations = [np.random.permutation(X_train.shape[0]) for _ in range(n_repeats)]
 
-random_results = []
-
 # for i_repeat in tqdm(range(n_repeats)):
 #     model = create_model("sparse_categorical_crossentropy","adam","relu",SHAPE)
 #     for i_query in tqdm(range(1,n_queries),leave=False):
@@ -100,7 +96,6 @@ random_results = []
 #                               epochs=epochs,validation_data=(X_test,y_test),verbose=verbose)
 
 #         loss,acc = model.evaluate(X_test,y_test)
-
 
 #         # learner=learner.fit(x=X_train[query_indices, :], y=y_train[query_indices])
 #         # score = learner.score(X_test, y_test)
@@ -116,13 +111,19 @@ random_results = []
 # print(score)
 
 for i_repeat in tqdm(range(n_repeats)):
-    learner = get_scikit_model()
+    # learner = get_scikit_model()
     for i_query in tqdm(range(1,n_queries),leave=False):
-        query_indices=permutations[i_repeat][:1+i_query]
-        learner=learner.fit(X=X_train[query_indices, :], y=y_train[query_indices])
-        score = learner.score(X_test, y_test)
-        
+        query_indices=permutations[i_repeat][:INITIAL_SIZE + i_query * extra_per_iteration]
+        # print(len(y_train[query_indices]))
+        learner = get_scikit_model()
+        learner.fit(X=X_train[query_indices, :], y=y_train[query_indices])
+        # score = learner.score(X_test, y_test)
+        preds = learner.predict(X_test)
+        score = f1_score(y_test, preds)
+
         random_results.append(ResultsRecord('random', i_query, score))
 
 
-print(pd.DataFrame(results) for results in random_results)
+df_results = pd.DataFrame(random_results)
+df_results.to_csv("randomLearner.csv",index=False)
+# df_results.head()
