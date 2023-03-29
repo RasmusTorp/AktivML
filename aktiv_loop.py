@@ -17,11 +17,13 @@ from model import Classifier, create_model, get_model
 SEED = 42
 INITIAL_SIZE = 50
 BATCH_SIZE = 10
-QUERY_SIZE = 20
-N_QUERIES = 3
-EPOCHS = 10
-SAVEPATH_QUERY = "query_history_rank.npy"
-SAVEPATH_PERF = "performance_history_rank.npy"
+QUERY_SIZE = 5
+N_QUERIES = 10
+EPOCHS = 20
+SAVEPATH_QUERY = "query_history_rank_50.npy"
+SAVEPATH_PERF = "performance_history_rank_50.npy"
+SAVEPATH_RANK_IMG = "top10_ranked_images_50.npy"
+SAVEPATH_RANK_IMG_LABEL = "top10_ranked_images_labels_50.npy"
 
 ### Data 
 X_raw = np.load("image_data_gray.npy")
@@ -87,6 +89,8 @@ learner = ActiveLearner(estimator=KerasClassifier(build_fn=get_model,
 
 performance_history = []
 query_history = []
+top_rank_imgs = []
+top_rank_imgs_labels = []
 
 for index in range(N_QUERIES):
   query_index, query_instance = learner.query(X_pool)
@@ -94,6 +98,10 @@ for index in range(N_QUERIES):
   # Get position of query instance
   query_transformed = [pca.transform(instance.flatten().reshape(1,-1)) for instance in query_instance]
   query_history.append(query_transformed)
+
+  # Save highest ranked images
+  top_rank_imgs.append(query_instance[:10])
+  top_rank_imgs_labels.append(y_pool[query_index])
   
   # Teach our ActiveLearner model the record it has requested.
   X, y = X_pool[query_index], y_pool[query_index]
@@ -115,6 +123,9 @@ print(performance_history)
 
 np.save(SAVEPATH_QUERY, np.array(query_history))
 np.save(SAVEPATH_PERF, np.array(performance_history))
+np.save(SAVEPATH_RANK_IMG, np.array(top_rank_imgs[0]))
+np.save(SAVEPATH_RANK_IMG_LABEL, top_rank_imgs_labels[0])
 
+print()
 # plt.plot(performance_history)
 # plt.show()
