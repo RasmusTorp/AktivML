@@ -20,18 +20,18 @@ from imblearn.under_sampling import RandomUnderSampler
 INITIAL_SIZE = 50
 
 n_repeats = 1
-n_queries = 10
+n_queries = 50
 SEED = 42
 TEST_SIZE = 0.5
 BATCH_SIZE = 10
 EPOCHS = 20
 verbose = 1
-extra_per_iteration = 10
+extra_per_iteration = 1
 
 CALLBACK = EarlyStopping(monitor="loss", patience=4)
 
 # SAVEPATH_QUERY = "query_history_random.npy"
-SAVEPATH_PERF = "performance_history_random_rank_100.npy"
+SAVEPATH_PERF = "performance_history_random_committee_50.npy"
 
 ResultsRecord = namedtuple('ResultsRecord', ['estimator', 'query_id', 'score'])
 
@@ -131,7 +131,7 @@ performance_history = []
 
 for i_repeat in tqdm(range(n_repeats)):
     # learner = get_scikit_model()
-    for i_query in tqdm(range(1,n_queries),leave=False):
+    for i_query in tqdm(range(0,n_queries),leave=False):
         query_indices=permutations[i_repeat][:INITIAL_SIZE + i_query * extra_per_iteration]
         # print(len(y_train[query_indices]))
         learner = get_scikit_model()
