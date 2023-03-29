@@ -5,6 +5,8 @@ from collections import namedtuple
 import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, Activation
+from keras.callbacks import EarlyStopping
+
 # from keras.wrappers.scikit_learn import KerasClassifier
 from scikeras.wrappers import KerasClassifier
 from modAL.models import ActiveLearner
@@ -12,26 +14,41 @@ from sklearn.model_selection import train_test_split
 from model import create_model, get_model
 import pandas as pd
 from sklearn.metrics import f1_score, accuracy_score
+from imblearn.under_sampling import RandomUnderSampler
 
-INITIAL_SIZE = 10
 
-n_repeats = 3
-n_queries = 20
+INITIAL_SIZE = 50
+
+n_repeats = 1
+n_queries = 10
 SEED = 42
-TEST_SIZE = 1/3
-BATCH_SIZE = 2
-EPOCHS = 10
+TEST_SIZE = 0.5
+BATCH_SIZE = 10
+EPOCHS = 20
 verbose = 1
-extra_per_iteration = 1
+extra_per_iteration = 10
+
+CALLBACK = EarlyStopping(monitor="loss", patience=4)
+
+# SAVEPATH_QUERY = "query_history_random.npy"
+SAVEPATH_PERF = "performance_history_random_rank_100.npy"
 
 ResultsRecord = namedtuple('ResultsRecord', ['estimator', 'query_id', 'score'])
 
-X = np.load("image_data_gray.npy")
-y = np.load("labels.npy")
+X_raw = np.load("image_data_gray.npy")
+y_raw = np.load("labels.npy")
 
-SHAPE = X[0].shape
+SHAPE = X_raw[0].shape
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=TEST_SIZE, random_state=SEED)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=TEST_SIZE, random_state=SEED)
+
+rus = RandomUnderSampler(random_state=0)
+X_resampled, y_resampled = rus.fit_resample(X_raw.reshape(4000,-1), y_raw.reshape(4000,-1))
+X_resampled, y_resampled = np.reshape(X_resampled, (2000,80,80,1)), np.reshape(y_resampled, (2000,)) 
+#X_train, X_test, y_train, y_test = train_test_split(X_raw, y_raw, test_size=0.20, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=TEST_SIZE, random_state=42)
+
+
 meta = {"n_features_in_": 0
         ,"X_shape_": (80,80,1)
         ,"n_classes_": 2}
@@ -64,7 +81,9 @@ def get_scikit_model():
                            epochs=EPOCHS,
                            optimizer='adam',
                            loss='sparse_categorical_crossentropy',
-                           metrics=['accuracy'])
+                           metrics=['accuracy'],
+                        #    callbacks=[CALLBACK]
+                           )
 
 
 # def get_learner():
@@ -104,7 +123,7 @@ permutations = [np.random.permutation(X_train.shape[0]) for _ in range(n_repeats
 
 
 random_results = []
-
+performance_history = []
 # learner = get_scikit_model()
 # learner.fit(X_train,y_train)
 # score = learner.score(X_test,y_test)
@@ -120,10 +139,19 @@ for i_repeat in tqdm(range(n_repeats)):
         # score = learner.score(X_test, y_test)
         preds = learner.predict(X_test)
         score = f1_score(y_test, preds)
+        performance_history.append(score)
+        print("SCORE:" , score)
 
         random_results.append(ResultsRecord('random', i_query, score))
 
 
-df_results = pd.DataFrame(random_results)
-df_results.to_csv("randomLearner.csv",index=False)
+# df_results = pd.DataFrame(random_results)
+# df_results.to_csv("randomLearner.csv",index=False)
+
+
+# np.save(SAVEPATH_QUERY, np.array(query_history))
+np.save(SAVEPATH_PERF, np.array(performance_history))
+
+
+
 # df_results.head()
