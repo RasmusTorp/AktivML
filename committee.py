@@ -18,21 +18,22 @@ from modAL.batch import uncertainty_batch_sampling
 from model import Classifier, create_model, get_model
 
 SEED = 42
-INITIAL_SIZE = 10
-BATCH_SIZE = 5
-QUERY_SIZE = 20
-N_QUERIES = 3
-N_COMMITTEES = 2
-EPOCHS = 10
+INITIAL_SIZE = 50
+BATCH_SIZE = 10
+# QUERY_SIZE = 20
+N_QUERIES = 100
+N_COMMITTEES = 10
+EPOCHS = 20
 LOSS = "sparse_categorical_crossentropy"
 CALLBACK = EarlyStopping(monitor="loss", patience=2)
 ESTIMATOR = KerasClassifier(build_fn=get_model, 
                             loss=LOSS, 
                             epochs=EPOCHS, 
                             batch_size=BATCH_SIZE,
-                            callbacks=[CALLBACK])
-SAVEPATH_QUERY = "query_history.npy"
-SAVEPATH_PERF = "performance_history.npy"
+                            #callbacks=[CALLBACK]
+                            )
+SAVEPATH_QUERY = "query_history_100.npy"
+SAVEPATH_PERF = "performance_history_100.npy"
 # ESTIMATOR = SGDClassifier(random_state=SEED, max_iter=1000, tol=1e-3)
 
 ### Data 
