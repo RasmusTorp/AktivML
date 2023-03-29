@@ -7,10 +7,11 @@ from imblearn.under_sampling import RandomUnderSampler
 
 
 RANDOM_STATE_SEED = 42
+QUERY_SIZE = 20
 X = np.load("AktivML/image_data_gray.npy")
 y = np.load("AktivML/labels.npy")
-performance_history = np.load("peformance_history.npy")
-query_history = np.load("query_history.npy")
+performance_history = np.load("performance_history_rank.npy")
+query_history = np.load("query_history_rank.npy")
 query_history = query_history.reshape(-1, 2)
 
 rus = RandomUnderSampler(random_state=0)
@@ -29,32 +30,34 @@ pca = PCA(n_components=2, random_state=RANDOM_STATE_SEED)
 transformed_X = pca.fit_transform(X=X_flat)
 x_component, y_component = transformed_X[:, 0], transformed_X[:, 1]
 
-# Plot query
+# Plot
 plt.figure(figsize=(8, 8), dpi=120)
 plt.scatter(x=x_component, y=y_component, c=y, s=10, alpha=8/10)
 
-# Text 
-for i, coord in enumerate(query_history):
+# Text (For the first query batch)
+for i, coord in enumerate(query_history[:QUERY_SIZE]):
     plt.text(x=coord[0], y=coord[1], s=f"{i+1}", 
     fontdict=dict(color="black", size=10), bbox=dict(boxstyle="round", fc="w"))
 
 
 
-plt.title('PCA transformation of data - Committee Overlay')
+plt.title('PCA transformation of data - Rank Overlay')
 plt.xlabel("PCA 1")
 plt.ylabel("PCA 2")
-plt.savefig("pca_overlay_committee.png")
+plt.savefig("pca_overlay_rank.png")
+
 
 
 # Plot performance
 plt.figure(figsize=(8, 8))
 plt.plot(performance_history)
 
-plt.title('Performance History - Committee')
+plt.title('Performance History')
 plt.xticks(np.arange(0, len(performance_history)))
 plt.xlabel("Query")
 plt.ylabel("Score")
-plt.savefig("performance_history_committee.png")
+plt.savefig("performance_history_rank.png")
+
 
 
 
