@@ -21,14 +21,14 @@ SEED = 42
 INITIAL_SIZE = 50
 BATCH_SIZE = 10
 # QUERY_SIZE = 20
-N_QUERIES = 5
+N_QUERIES = 50
 N_COMMITTEES = 5
 EPOCHS = 20
 LOSS = "sparse_categorical_crossentropy"
-CALLBACK = EarlyStopping(monitor="loss", patience=2)
+# CALLBACK = EarlyStopping(monitor="loss", patience=2)
 
-SAVEPATH_QUERY = "query_history_100.npy"
-SAVEPATH_PERF = "performance_history_100.npy"
+SAVEPATH_QUERY = "query_history_committee_50.npy"
+SAVEPATH_PERF = "performance_history_committee_50.npy"
 # ESTIMATOR = SGDClassifier(random_state=SEED, max_iter=1000, tol=1e-3)
 
 ### Data 
@@ -100,7 +100,7 @@ for idx in range(N_QUERIES):
     # remove queried instance from pool
     X_pool = np.delete(X_pool, query_idx, axis=0)
     y_pool = np.delete(y_pool, query_idx)
-    print(f"Query Index: {query_idx}")
+    print(f"Query {idx}: {query_idx}")
 
 np.save(SAVEPATH_QUERY, np.array(query_history))
 np.save(SAVEPATH_PERF, np.array(performance_history))
