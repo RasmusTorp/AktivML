@@ -14,23 +14,31 @@ from imblearn.under_sampling import RandomUnderSampler
 
 from model import Classifier, create_model, get_model
 
-#RANDOM_STATE_SEED = 42
-INITIAL_SIZE = 100
-#SHAPE = (80,80,1)
-BATCH_SIZE = 50
+SEED = 42
+INITIAL_SIZE = 50
+BATCH_SIZE = 10
 QUERY_SIZE = 20
-N_QUERIES = 10
+N_QUERIES = 3
 EPOCHS = 10
+SAVEPATH_QUERY = "query_history_rank.npy"
+SAVEPATH_PERF = "performance_history_rank.npy"
 
 ### Data 
 X_raw = np.load("image_data_gray.npy")
 y_raw = np.load("labels.npy")
 rus = RandomUnderSampler(random_state=0)
 X_resampled, y_resampled = rus.fit_resample(X_raw.reshape(4000,-1), y_raw.reshape(4000,-1))
-X_resampled, y_resampled = np.reshape(X_resampled, (2000,80,80,1)), np.reshape(y_resampled, (2000,1)) 
+X_resampled, y_resampled = np.reshape(X_resampled, (2000,80,80,1)), np.reshape(y_resampled, (2000,)) 
 
 X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.50, random_state=42)
 X_train, X_pool, y_train, y_pool = train_test_split(X_train, y_train, train_size=INITIAL_SIZE, random_state=42)
+
+
+# Initialize PCA for later projection
+# X_flat = np.array([img.flatten() for img in X])
+X_flat = np.array([img.flatten() for img in X_resampled])
+pca = PCA(n_components=2, random_state=SEED)
+transformed_X = pca.fit(X=X_flat)
 
 
 # # Isolate our examples for our labeled dataset.
@@ -78,10 +86,15 @@ learner = ActiveLearner(estimator=KerasClassifier(build_fn=get_model,
 
 
 performance_history = []
+query_history = []
 
 for index in range(N_QUERIES):
   query_index, query_instance = learner.query(X_pool)
 
+  # Get position of query instance
+  query_transformed = [pca.transform(instance.flatten().reshape(1,-1)) for instance in query_instance]
+  query_history.append(query_transformed)
+  
   # Teach our ActiveLearner model the record it has requested.
   X, y = X_pool[query_index], y_pool[query_index]
   learner.teach(X=X, y=y)
@@ -93,12 +106,15 @@ for index in range(N_QUERIES):
   preds = learner.predict(X_test)
   # model_accuracy = learner.score(X_test, y_raw)
   model_accuracy = f1_score(y_test, preds)
-  print('Accuracy after query {n}: {acc:0.4f}'.format(n=index + 1, acc=model_accuracy))
+  # print('Accuracy after query {n}: {acc:0.4f}'.format(n=index + 1, acc=model_accuracy))
 
   # Save our model's performance for plotting.
   performance_history.append(model_accuracy)
 
 print(performance_history)
 
-plt.plot(performance_history)
-plt.show()
+np.save(SAVEPATH_QUERY, np.array(query_history))
+np.save(SAVEPATH_PERF, np.array(performance_history))
+
+# plt.plot(performance_history)
+# plt.show()
