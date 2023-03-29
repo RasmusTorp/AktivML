@@ -10,7 +10,7 @@ RANDOM_STATE_SEED = 42
 X = np.load("AktivML/image_data_gray.npy")
 y = np.load("AktivML/labels.npy")
 # performance_history = np.load("performance_history_random_50.npy")
-query_history = np.load("query_history_rank_50.npy")
+query_history = np.load("query_history_committee_50.npy")
 query_history = query_history.reshape(-1, 2)
 
 rus = RandomUnderSampler(random_state=0)
@@ -38,10 +38,10 @@ for i, coord in enumerate(query_history[:10]):
     plt.text(x=coord[0], y=coord[1], s=f"{i+1}", 
     fontdict=dict(color="black", size=10), bbox=dict(boxstyle="round", fc="w"))
 
-plt.title('PCA transformation of data - Rank Overlay')
+plt.title('PCA transformation of data - Committee Overlay')
 plt.xlabel("PCA 1")
 plt.ylabel("PCA 2")
-plt.savefig("pca_overlay_rank_50.png")
+plt.savefig("pca_overlay_comnittee_50.png")
 
 
 # Plot performance
